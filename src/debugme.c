@@ -93,7 +93,7 @@ EXPORT int debugme_debug(unsigned dbg_flags_, const char *dbg_opts_) {
   while(!__debugme_go) {  // Wait for debugger to unblock us
     usleep(10);
     us += 10;
-    if(us > 1000000) {  // Allow for 1 sec. delay
+    if(us > 5000000) {  // Allow for 5 sec. delay
       SAFE_MSG("libdebugme: debugger failed to attach\n");
       return 0;
     }
