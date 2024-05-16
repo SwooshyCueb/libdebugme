@@ -43,17 +43,9 @@ EXPORT int debugme_install_sighandlers(unsigned dbg_flags_, const char *dbg_opts
 
   int bad_signals[] = { SIGILL, SIGABRT, SIGFPE, SIGSEGV, SIGBUS, SIGSYS };
 
-  size_t i;
-  for(i = 0; i < ARRAY_SIZE(bad_signals); ++i) {
-    int sig = bad_signals[i];
-    const char *signame = strsignal(sig);
-    if(debug) {
-      fprintf(stderr, "debugme: setting signal handler for signal %d (%s)\n", sig, signame);
-    }
-    if(SIG_ERR == signal(sig, sighandler)) {
-      fprintf(stderr, "libdebugme: failed to intercept signal %d (%s)\n", sig, signame);
-    }
-  }
+  struct sigaction sa = {};
+  sa.sa_handler = sighandler;
+  sigemptyset(&sa.sa_mask);
 
   if (dbg_flags & DEBUGME_ALTSTACK) {
     static char ALIGNED(16) stack[SIGSTKSZ];
@@ -63,6 +55,20 @@ EXPORT int debugme_install_sighandlers(unsigned dbg_flags_, const char *dbg_opts
     st.ss_size = sizeof(stack);
     if(0 != sigaltstack(&st, 0)) {
       perror("libdebugme: failed to install altstack");
+    } else {
+      sa.sa_flags |= SA_ONSTACK;
+    }
+  }
+
+  size_t i;
+  for(i = 0; i < ARRAY_SIZE(bad_signals); ++i) {
+    int sig = bad_signals[i];
+    const char *signame = strsignal(sig);
+    if(debug) {
+      fprintf(stderr, "debugme: setting signal handler for signal %d (%s)\n", sig, signame);
+    }
+    if(0 > sigaction(sig, &sa, NULL)) {
+      fprintf(stderr, "libdebugme: failed to intercept signal %d (%s)\n", sig, signame);
     }
   }
 
