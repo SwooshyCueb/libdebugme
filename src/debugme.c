@@ -41,7 +41,7 @@ EXPORT int debugme_install_sighandlers(unsigned dbg_flags_, const char *dbg_opts
   dbg_flags = dbg_flags_;
   dbg_opts = dbg_opts_;
 
-  int bad_signals[] = { SIGILL, SIGABRT, SIGFPE, SIGSEGV, SIGBUS };
+  int bad_signals[] = { SIGILL, SIGABRT, SIGFPE, SIGSEGV, SIGBUS, SIGSYS };
 
   size_t i;
   for(i = 0; i < ARRAY_SIZE(bad_signals); ++i) {
