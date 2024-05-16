@@ -69,13 +69,13 @@ int run_gdb(unsigned dbg_flags, const char *dbg_opts) {
       }
 
       if(dbg_flags & DEBUGME_XTERM) {
-	// xterm will run $SHELL to interpret that command line
-	// It's the user's responsibility to ensure the dbg_opts
-	// use the right syntax for that shell.
+      // xterm will run $SHELL to interpret that command line
+      // It's the user's responsibility to ensure the dbg_opts
+      // use the right syntax for that shell.
         execl("/usr/bin/xterm", "/usr/bin/xterm", "-e", buf, (char *)0);
       } else {
-	char *shell = getenv("SHELL");
-	if (!shell) shell = "/bin/sh";
+      char *shell = getenv("SHELL");
+      if (!shell) shell = "/bin/sh";
 
         execl(shell, shell, "-c", buf, (char *)0);
       }
