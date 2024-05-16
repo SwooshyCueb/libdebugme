@@ -27,7 +27,10 @@ int quiet;
 EXPORT volatile int __debugme_go;
 
 static void sighandler(int sig) {
-  (void)sig;
+  const char *signame = sigabbrev_np(sig);
+  SAFE_MSG("\x1B[1;31mlibdebugme: caught signal ");
+  SAFE_MSG(signame);
+  SAFE_MSG("\x1B[0m\n");
   debugme_debug(dbg_flags, dbg_opts);
   exit(1);
 }
@@ -48,7 +51,7 @@ EXPORT int debugme_install_sighandlers(unsigned dbg_flags_, const char *dbg_opts
   sigemptyset(&sa.sa_mask);
 
   if (dbg_flags & DEBUGME_ALTSTACK) {
-    static char ALIGNED(16) stack[SIGSTKSZ];
+    static char ALIGNED(16) stack[1024*1024*64];
     stack_t st;
     st.ss_sp = stack;
     st.ss_flags = 0;
@@ -89,6 +92,7 @@ EXPORT int debugme_debug(unsigned dbg_flags_, const char *dbg_opts_) {
     return 1;
   }
 
+  /*
   // TODO: select from the list of frontends (gdbserver, gdb+xterm, kdebug, ddd, etc.)
   if(!run_gdb(dbg_flags_, dbg_opts_ ? dbg_opts_ : ""))
     return 0;
@@ -113,6 +117,9 @@ EXPORT int debugme_debug(unsigned dbg_flags_, const char *dbg_opts_) {
   // TODO: ARM
   raise(SIGTRAP);
 #endif
+  */
+  SAFE_MSG("\x1B[1;31mlibdebugme: suspending process\x1B[0m\n");
+  raise(SIGSTOP);
 
   in_debugme_debug = 0;
   return 1;

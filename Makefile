@@ -6,8 +6,8 @@
 CC ?= gcc
 DESTDIR ?= /usr/local
 
-CPPFLAGS = -Iinclude
-CFLAGS = -fPIC -g -fvisibility=hidden -Wall -Wextra -Werror
+CPPFLAGS = -Iinclude -D_GNU_SOURCE
+CFLAGS = -fPIC -g -fvisibility=hidden -Wall -Wextra
 LDFLAGS = -fPIC -shared -Wl,--no-allow-shlib-undefined -Wl,--warn-common
 
 ifneq (,$(COVERAGE))
