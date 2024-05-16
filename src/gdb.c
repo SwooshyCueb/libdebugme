@@ -44,47 +44,44 @@ int run_gdb(unsigned dbg_flags, const char *dbg_opts) {
 #endif
 
   gdb_pid = fork();
-  switch(gdb_pid) {
-  case -1:
+  if (gdb_pid < 0) {
     SAFE_MSG("libdebugme: failed to fork\n");
     return 0;
+  } else if (gdb_pid == 0) {
+    // Child
 
-  case 0: {
-      // Child
+    pid_t ppid = getppid();
 
-      pid_t ppid = getppid();
-
-      char buf[256];
-      int nread = snprintf(buf, sizeof(buf),
-                           "gdb -ex 'attach %ld' "
-                           // Unblock parent process
-                           "-ex 'set __debugme_go=1' "
-                           // Wait untils it breaks
-                           "-ex continue "
-                           // Give control to user
-                           "%s", (long)ppid, dbg_opts);
-      if(nread >= (int)sizeof(buf) - 1) {
-        SAFE_MSG("libdebugme: increase size of buffer in run_gdb\n");
-        _exit(1);
-      }
-
-      if(dbg_flags & DEBUGME_XTERM) {
-      // xterm will run $SHELL to interpret that command line
-      // It's the user's responsibility to ensure the dbg_opts
-      // use the right syntax for that shell.
-        execl("/usr/bin/xterm", "/usr/bin/xterm", "-e", buf, (char *)0);
-      } else {
-      char *shell = getenv("SHELL");
-      if (!shell) shell = "/bin/sh";
-
-        execl(shell, shell, "-c", buf, (char *)0);
-      }
-
-      SAFE_MSG("libdebugme: failed to run gdb command: ");
-      SAFE_MSG(buf);
-      SAFE_MSG("\n");
+    char buf[256];
+    int nread = snprintf(buf, sizeof(buf),
+                         "gdb -ex 'attach %ld' "
+                         // Unblock parent process
+                         "-ex 'set __debugme_go=1' "
+                         // Wait untils it breaks
+                         "-ex continue "
+                         // Give control to user
+                         "%s", (long)ppid, dbg_opts);
+    if(nread >= (int)sizeof(buf) - 1) {
+      SAFE_MSG("libdebugme: increase size of buffer in run_gdb\n");
       _exit(1);
     }
+
+    if(dbg_flags & DEBUGME_XTERM) {
+    // xterm will run $SHELL to interpret that command line
+    // It's the user's responsibility to ensure the dbg_opts
+    // use the right syntax for that shell.
+      execl("/usr/bin/xterm", "/usr/bin/xterm", "-e", buf, (char *)0);
+    } else {
+    char *shell = getenv("SHELL");
+    if (!shell) shell = "/bin/sh";
+
+      execl(shell, shell, "-c", buf, (char *)0);
+    }
+
+    SAFE_MSG("libdebugme: failed to run gdb command: ");
+    SAFE_MSG(buf);
+    SAFE_MSG("\n");
+    _exit(1);
   }
 
   // Parent
